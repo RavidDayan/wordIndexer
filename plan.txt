@@ -1,0 +1,13 @@
+1.open the file 
+2.biggest word size:move over all words and find the biggest word in file and return its size as the buffer for words.o(n)
+3.maximum words :count all words without  o(n)
+4.make 2 arrays string array, 2d int array :string array holds tokens,2d array holds the number lines that the word apeared
+5.sort array
+
+1.open the file 
+2.iterate over tokens
+    2.0 loop over each line in file:
+        2.0.1 if token equals first token of file -> add the line number to token in file
+        2.0.2 if token is not equal, compare lexographicly
+            2.0.2.1 if token is before insert token ,phrase ,line its on and \not
+            2.0.2.2 if token is after move to the next line and go back to 2.0.1 
