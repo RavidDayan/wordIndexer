@@ -1,11 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-struct node
-{
-    void *data;
-    struct node *next;
-};
+#include "node.h"
 
 struct node *newNode(void *data)
 {
