@@ -14,7 +14,8 @@ struct node *newNode(char *name)
     newNode->name = (char *)calloc(strlen(name) / sizeof(char), sizeof(char));
     newNode->lines = (int *)calloc(LINE_BUFFER, sizeof(int));
     newNode->lines[LINE_BUFFER - 1] = LINE_SENTRY;
-    newNode->next = NULL;
+    newNode->left = NULL;
+    newNode->right = NULL;
     return newNode;
 }
 void setNext(struct node *this, struct node *next)
@@ -63,4 +64,30 @@ void freeNode(struct node *this)
     free(this->name);
     free(this->lines);
     free(this);
+}
+int compareNode(struct node *this, struct node *other)
+{
+    int i = 0;
+    char *first = this->name;
+    char *second = other->name;
+    while (first[i] != '\0' && second[i] != '\0')
+    {
+        if (first[i] < second[i])
+        {
+            return BIGGER;
+        }
+        if (first[i] > second[i])
+        {
+            return SMALLER;
+        }
+    }
+    if (first[i] != '\0' && second[i] == '\0')
+    {
+        return BIGGER;
+    }
+    if (first[i] == '\0' && second[i] != '\0')
+    {
+        return SMALLER;
+    }
+    return EQUAL;
 }
