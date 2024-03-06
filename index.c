@@ -2,96 +2,109 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "node.h"
+#include "tree.h"
 
-void indexer(/*char *name*/);
-int getMaxWordLength(FILE *file_pointer);
-int getTokenFromInput(char *des, int tokenLength, int *lineIndex, FILE *file);
-void placeWord(char *token, int index, FILE *file);
+void indexer(char *name);             /*iterate over file and index's words and lines*/
+char *getTokenFromInput(FILE *file);  /*returns a token from file by finding the current token length,alocating memory and inserting the chars from file*/
+int stringLength(FILE *file);         /*returns the length of the current token in file by counting the number of chars in file until whitespace or EOF is encounterd,rewinds file pointer back to the start of the word*/
+int findToken(FILE *file, int *line); /*iterates over whitespaces in file until a token or EOF is reached return 1 if a non whitespace char is found,0 if reached EOF*/
 int main(int argc, char *argv[])
 {
-
-    indexer();
-    /*int i;
-    for (i = 0; i < argc; i++)
+    int i;
+    if (argc == 1)
     {
+        fprintf(stderr, "No file name has been enterd");
+        exit(0);
+    }
+
+    for (i = 1; i < argc; i++)
+    {
+        printf("%s", argv[i]);
         indexer(argv[i]);
-    }*/
+    }
+
     return 0;
 }
-void indexer(/*char *fileName*/)
+void indexer(char *fileName)
 {
-    char tokens[200][80];
-    char token[80];
-    int lines[200][200];
-    int tokenLength;
-    int lineIndex = 1;
-    int futureLineIndex = 1;
-    int i = 0;
-    int j = 0;
+    struct node *tree = NULL;
+    char *token = NULL;
     FILE *fileInput;
-    /*FILE *fileOutput;*/
-    fileInput = fopen("input.txt", "r");
-    /*fileOutput = fopen("output.txt", "w+");*/
-    tokenLength = getMaxWordLength(fileInput);
-    while (getTokenFromInput(token, tokenLength, &futureLineIndex, fileInput) != 0)
+    int lineIndex = 1;
+    fileInput = fopen(fileName, "r");
+    if (fileInput == NULL)
     {
-        printf("%s ", token);
-        printf("%d\n", lineIndex);
-        lineIndex = futureLineIndex;
+        fprintf(stderr, "file named %s could not be opend\n", fileName);
+        exit(0);
     }
-    printf("%s ", token);
-    printf("%d\n", lineIndex);
-    lineIndex = futureLineIndex;
+
+    while (findToken(fileInput, &lineIndex) != 0)
+    {
+        token = getTokenFromInput(fileInput);
+        tree = insert(tree, token, lineIndex);
+    }
+    maxToMinFunc(tree);
+    freeTree(tree);
 }
 
-int getTokenFromInput(char *des, int tokenLength, int *lineIndex, FILE *file)
+char *getTokenFromInput(FILE *file)
 {
-    int i = 0;
-    char ch;
-    ch = getc(file);
-    while (ch != EOF)
+    int i;
+    int tokenSize; /*size of current token*/
+    char *des;     /*returned string*/
+    tokenSize = stringLength(file);
+    des = (char *)malloc((tokenSize + 1) * sizeof(char)); /*alocate memory for current token and room for '\n'*/
+    if (des == NULL)
     {
-        if (isspace(ch) != 0)
-        {
-            if (ch == '\n')
-            {
-                (*lineIndex)++;
-            }
-            return 1;
-        }
-        des[i] = ch;
-        des[i + 1] = '\0';
-        i++;
+        fprintf(stderr, "Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+    for (i = 0; i < tokenSize; i++)
+    {
+        des[i] = getc(file);
+    }
+    des[i] = '\0';
+    return des;
+}
+int stringLength(FILE *file)
+{
+    char ch = 'a';   /*holds chars from file*/
+    int counter = 0; /*counter for string length*/
+    ch = getc(file);
+    while (ch != EOF && isspace(ch) == 0)
+    {
+        counter++;
         ch = getc(file);
     }
-    return 0;
+    if (ch == EOF)
+    {
+        fseek(file, -(counter), SEEK_CUR);
+    }
+    else
+    {
+        fseek(file, -(counter + 1), SEEK_CUR);
+    }
+    return counter;
 }
-int getMaxWordLength(FILE *file)
+int findToken(FILE *file, int *line)
 {
-    char ch; /*hold current char*/
-    int counter = 0;
-    int max = 0; /*length of longest line*/
-    rewind(file);
-    while ((ch = fgetc(file)) != EOF)
+    char ch = ' '; /*hold file chars*/
+    while (ch != EOF && isspace(ch) != 0)
     {
-        if (isspace(ch) == 0)
+        ch = getc(file);
+        if (ch == '\n') /*increments the line when \n is met*/
         {
-            counter++;
-        }
-        else
-        {
-            if (max < counter)
-            {
-                max = counter;
-            }
-            counter = 0;
+            *line = *line + 1;
         }
     }
-    if (max < counter)
+    if (isspace(ch) == 0 && ch != EOF)
     {
-        max = counter;
+        fseek(file, -1, SEEK_CUR); /*rewind file pointer to current character in ch*/
+        return 1;
     }
-    counter = 0;
-    rewind(file);
-    return max;
+    else
+    {
+        return 0;
+    }
 }
