@@ -3,29 +3,46 @@
 #include "node.h"
 #include <string.h>
 
-struct node *newNode(char *name)
+struct node *newNode(char *token)
 {
-    struct node *newNode = (struct node *)malloc(sizeof(struct node));
-    if (newNode == NULL)
+    struct node *newNode = (struct node *)malloc(sizeof(struct node));/*alocate memory for struct*/
+    if (newNode == NULL)/*check for successfull memory alocation*/
     {
-        perror("Error allocating memory");
+        fprintf(stderr, "Error allocating memory");
         exit(EXIT_FAILURE);
     }
-    newNode->name = (char *)calloc(strlen(name) / sizeof(char), sizeof(char));
-    newNode->lines = (int *)calloc(LINE_BUFFER, sizeof(int));
-    newNode->lines[LINE_BUFFER - 1] = LINE_SENTRY;
+    newNode->token = (char *)malloc(strlen(token) * sizeof(char));/*initialize token memory base on string length*/
+    if (newNode->token == NULL)/*check for successfull memory alocation*/
+    {
+        fprintf(stderr, "Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+    newNode->token = token;
+    newNode->lines = (int *)malloc(LINE_BUFFER * sizeof(int));/*initialize line memory based line_buffer*/
+    if (newNode->lines == NULL)/*check for successfull memory alocation*/
+    {
+        fprintf(stderr, "Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+    zeroArray(newNode->lines, LINE_BUFFER);/*zero cell represents an empty cell*/
+    newNode->lines[LINE_BUFFER - 1] = LINE_SENTRY;/*enter array sentry at end of array*/
     newNode->left = NULL;
     newNode->right = NULL;
     return newNode;
 }
-void setNext(struct node *this, struct node *next)
+void setRight(struct node *this, struct node *next)
 {
-    this->next = next;
+    this->right = next;
+}
+void setLeft(struct node *this, struct node *next)
+{
+    this->left = next;
 }
 void setLine(struct node *this, int line)
 {
     int i;
-    for (i = 0; this->lines[i] != LINE_SENTRY; i++)
+    int *newLines;
+    for (i = 0; this->lines[i] != LINE_SENTRY && this->lines[i] != line; i++)/*find an empty cell to enter new line*/
     {
         if (this->lines[i] == 0)
         {
@@ -33,61 +50,43 @@ void setLine(struct node *this, int line)
             return;
         }
     }
-    if (this->lines[i] == LINE_SENTRY)
+    if (this->lines[i] == LINE_SENTRY)/*if no empty cell was found make room */
     {
-        this->lines = realloc(this->lines, (strlen(this->lines) / sizeof(int)) + LINE_BUFFER);
-        if (this->lines == NULL)
+        newLines = realloc(this->lines, (intArrLength(this->lines) + LINE_BUFFER) * sizeof(int));/*add aditional buffer size space to array*/
+        if (this->lines == NULL)/*check for successfull relocation of memory*/
         {
-            perror("Error reallocating memory");
+            fprintf(stderr, "Error reallocating memory");
+            exit(EXIT_FAILURE);
         }
         else
         {
-            this->lines[(strlen(this->lines) / sizeof(int)) - 1] = LINE_SENTRY;
+            this->lines = newLines;
+            this->lines[intArrLength(this->lines) + LINE_BUFFER - 1] = LINE_SENTRY;/*move sentry to new last place in array*/
             this->lines[i] = line;
         }
     }
 }
-struct node *getNext(struct node *this)
-{
-    return this->next;
-}
-char *getName(struct node *this)
-{
-    return this->name;
-}
-int *getLines(struct node *this)
-{
-    return this->lines;
-}
 void freeNode(struct node *this)
 {
-    free(this->name);
+    free(this->token);
     free(this->lines);
     free(this);
 }
-int compareNode(struct node *this, struct node *other)
+int intArrLength(int *arr)
 {
-    int i = 0;
-    char *first = this->name;
-    char *second = other->name;
-    while (first[i] != '\0' && second[i] != '\0')
+    int counter = 0;
+    while (*arr != LINE_SENTRY)
     {
-        if (first[i] < second[i])
-        {
-            return BIGGER;
-        }
-        if (first[i] > second[i])
-        {
-            return SMALLER;
-        }
+        counter++;
+        arr++;
     }
-    if (first[i] != '\0' && second[i] == '\0')
+    return counter;
+}
+void zeroArray(int *arr, int length)
+{
+    int i;
+    for (i = 0; i < length; i++)
     {
-        return BIGGER;
+        arr[i] = 0;
     }
-    if (first[i] == '\0' && second[i] != '\0')
-    {
-        return SMALLER;
-    }
-    return EQUAL;
 }
