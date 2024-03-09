@@ -4,5 +4,5 @@ LIBS = -lm
 
 all: index
 
-mainmat: index.c 
-	$(CC) $(CFLAGS) index.c -o index $(LIBS)
+index: index.c tree.c node.c
+	$(CC) $(CFLAGS) index.c tree.c node.c -o index $(LIBS)

@@ -15,12 +15,12 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
         fprintf(stderr, "No file name has been enterd");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     for (i = 1; i < argc; i++)
     {
-        printf("%s", argv[i]);
+        printf("\n%s index:\n", argv[i]);
         indexer(argv[i]);
     }
 
